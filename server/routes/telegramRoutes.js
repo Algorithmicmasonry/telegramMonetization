@@ -5,17 +5,26 @@ import { bold } from "telegraf/format";
 import { retry } from "../controllers/retry.js"; // Import the retry function
 import { Group, User } from "../database/schema.js";
 import { sendBotMessage } from "../controllers/sendBotMessage.js";
-import { generatePaymentLink, generateTelegramInviteLink } from "../controllers/generatePaymentLink.js";
+import {
+  generatePaymentLink,
+  generateTelegramInviteLink,
+} from "../controllers/generatePaymentLink.js";
+import { paidMemberCheck } from "../controllers/paidMemberCheck.js";
 
 dotenv.config();
 
-const bot = new Telegraf(process.env.BOT_TOKEN, {polling: true});
+const bot = new Telegraf(process.env.BOT_TOKEN, { polling: true });
 // const websiteUrl = process.env.WEBSITE_URL;
 const websiteUrl = process.env.WEBSITE_URL;
 
 // Start command with interactive buttons
 // Start command with interactive buttons
+
 bot.start(async (ctx) => {
+  const message = ctx.message.text;
+  const match = message.split("");
+  const token = match[1];
+  console.log("This is the token sent along with the start command: ", token);
   const telegramId = ctx.from?.id;
   const telegramUsername = ctx.from?.first_name;
 
@@ -107,15 +116,17 @@ bot.action("manage_groups", (ctx) => {
   );
 });
 
+bot.action("generate_link", (ctx) => {});
+
 bot.on("new_chat_members", async (ctx) => {
   console.log("This is the data when a new user joins the group:", ctx);
+  const adminId = ctx.from.id;
   const number = await ctx.telegram.getChatMembersCount(ctx.chat.id); // Get the number of people in the group
   console.log("These are the number of people in the group: ", number);
   const groupId = ctx.chat?.id; // ID of the group
   const groupName = ctx.chat?.title; // Name of the group
   const userId = ctx.from?.id;
-
-  
+  const newMember = ctx.message.new_chat_member; // New member object
 
   console.log(
     "this is the group data i am looking for: ",
@@ -162,6 +173,13 @@ bot.on("new_chat_members", async (ctx) => {
             "I’m here to keep your group running smoothly and make sure that everyone is respected. If you have any questions or need assistance, feel free to reach out to the group admin!\n\n" +
             "Let's keep things fun and friendly for everyone! 😄"
         );
+
+        await ctx.telegram.sendMessage(
+          adminId,
+          `Group Shepherd has been added to the group: ${groupName}🎉. If you want to set the amount of money you want to be paid for access to your group click the button below to access our webiste: ${websiteUrl}`
+        );
+
+        paidMemberCheck(ctx, memberId, groupId, adminId);
       } else {
         console.log("Group already exists in the database.");
       }
@@ -334,11 +352,15 @@ router.post("/api/telegram/set-rules", async (request, response) => {
         }
 
         if (monthlyPrice && isNaN(parseFloat(monthlyPrice))) {
-          return response.status(400).json({ message: "Invalid monthly price." });
+          return response
+            .status(400)
+            .json({ message: "Invalid monthly price." });
         }
 
         if (yearlyPrice && isNaN(parseFloat(yearlyPrice))) {
-          return response.status(400).json({ message: "Invalid yearly price." });
+          return response
+            .status(400)
+            .json({ message: "Invalid yearly price." });
         }
 
         if (monthlyPrice) {
@@ -352,7 +374,8 @@ router.post("/api/telegram/set-rules", async (request, response) => {
       if (pricingType === "one-time" && oneTimePrice) {
         if (isNaN(parseFloat(oneTimePrice))) {
           return response.status(400).json({
-            message: "One-time price is required if you want a one-time payment group",
+            message:
+              "One-time price is required if you want a one-time payment group",
           });
         }
         group.oneTimePrice = parseFloat(oneTimePrice);
@@ -368,25 +391,42 @@ router.post("/api/telegram/set-rules", async (request, response) => {
 
     // Generate payment link based on group pricing details
     let paymentLink;
-    if (group.paymentType === 'recurring') {
+    if (group.paymentType === "recurring") {
       // Offer the user a choice between monthly or yearly payments
       if (monthlyPrice && yearlyPrice) {
         // You might want to present both options to the user and let them choose
-        paymentLink = await generatePaymentLink(monthlyPrice, group._id, group.currency);
+        paymentLink = await generatePaymentLink(
+          monthlyPrice,
+          group._id,
+          group.currency
+        );
       } else if (monthlyPrice) {
-        paymentLink = await generatePaymentLink(monthlyPrice, group._id, group.currency);
+        paymentLink = await generatePaymentLink(
+          monthlyPrice,
+          group._id,
+          group.currency
+        );
       } else if (yearlyPrice) {
-        paymentLink = await generatePaymentLink(yearlyPrice, group._id, group.currency);
+        paymentLink = await generatePaymentLink(
+          yearlyPrice,
+          group._id,
+          group.currency
+        );
       }
-    } else if (group.paymentType === 'one-time') {
-      paymentLink = await generatePaymentLink(group.oneTimePrice, group._id, group.currency);
+    } else if (group.paymentType === "one-time") {
+      paymentLink = await generatePaymentLink(
+        group.oneTimePrice,
+        group._id,
+        group.currency
+      );
     }
 
     // Generate Telegram invite link using Telegraf
-    const inviteLink = await generateTelegramInviteLink(group.telegramGroupId);  // Assuming you have a function to do this
+    const inviteLink = await generateTelegramInviteLink(group.telegramGroupId); // Assuming you have a function to do this
 
     // Message to send to the user
-    const message = (`✅ Group Payment rules set successfully\n\n` +
+    const message =
+      `✅ Group Payment rules set successfully\n\n` +
       `${group.groupName} new payment rules are as follows:\n` +
       `💸The payment type is ${group.paymentType}\n` +
       `💱The currency is ${group.currency}\n` +
@@ -394,12 +434,14 @@ router.post("/api/telegram/set-rules", async (request, response) => {
       `💵📅The monthly price is ${group.currency}${group.monthlyPrice}\n` +
       `💎The yearly price is${group.currency} ${group.yearlyPrice}\n\n` +
       `This is your group payment link: ${paymentLink}\n\n` +
-      `Join the group using this invite link: ${inviteLink}`);
+      `Join the group using this invite link: ${inviteLink}`;
 
     await sendBotMessage(user?.telegramId, message);
     console.log("bot has sent message");
 
-    return response.status(200).json({ message: "Group rules set successfully." });
+    return response
+      .status(200)
+      .json({ message: "Group rules set successfully." });
   } catch (error) {
     console.error("Error setting group rules: ", error.message);
 
@@ -407,7 +449,6 @@ router.post("/api/telegram/set-rules", async (request, response) => {
     return response.status(500).json({ message: errorMessage });
   }
 });
-
 
 // Retry launching the bot
 retry(() => bot.launch(), 5, 3000)
