@@ -1,3 +1,4 @@
+"use client"
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { heroImage } from "@/images";
 import Image from "next/image";
