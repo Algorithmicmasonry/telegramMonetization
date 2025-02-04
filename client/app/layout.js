@@ -10,9 +10,9 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title:"GroupGuard",
+  title:"GroupShepherd",
   description:
-    "This is the starter kit i hope to use for my future projects, as i improve, i will imporove on it",
+    "Automate subscription payments for your Telegram Communities in just a click",
 };
 
 export default function RootLayout({ children }) {
