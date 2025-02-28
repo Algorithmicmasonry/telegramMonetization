@@ -1,7 +1,8 @@
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "../components/ui/toaster";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import SiteLayout from "./site/layout";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -10,7 +11,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title:"GroupShepherd",
+  title: "GroupShepherd",
   description:
     "Automate subscription payments for your Telegram Communities in just a click",
 };
@@ -20,7 +21,8 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.className} antialiased`}>
         <main>{children}</main>
-        <Toaster/>
+
+        <Toaster />
         <Analytics />
       </body>
     </html>
