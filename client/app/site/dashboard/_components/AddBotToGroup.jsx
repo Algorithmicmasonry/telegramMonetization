@@ -56,7 +56,7 @@ const AddBotToGroup = () => {
             <div className="space-y-2">
               <h3 className="font-medium">Step 3</h3>
               <p className="text-sm text-muted-foreground">
-                In the bot's menu, select <span className="font-semibold text-white">&quot;Manage My Groups &quot;</span>
+                In the bot&apos;s menu, select <span className="font-semibold text-white">&quot;Manage My Groups &quot;</span>
               </p>
             </div>
 
