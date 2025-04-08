@@ -5,12 +5,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash, Users } from "lucide-react";
+import { CreditCard, Edit, MoreHorizontal, Trash, Users } from "lucide-react";
 import { handleDeleteGroup } from "@/actions/queries";
 import { toast } from "@/hooks/use-toast";
 import CopyInviteLink from "./CopyInviteLink";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import CreateGroupForm from "./CreateGroupForm";
+import CreateGroupFormv0 from "./v0CreateGroupForm";
 
-export default function GroupList({ onSelectGroup, data }) {
+export default function GroupList({ onSelectGroup, data, user }) {
   const router = useRouter();
   const groups = data?.groups;
 
@@ -66,10 +75,39 @@ export default function GroupList({ onSelectGroup, data }) {
                 <h3 className="font-semibold">{group.groupName}</h3>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Users className="w-4 h-4 mr-1" />
-                  {group.participants.length} members
+                  {group.membersCount} members
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {group?.price || "Free"} / {group?.frequency || "monthly"}
+                  {group?.paymentType === "recurring" ? (
+                    <>
+                      {group?.monthlyPrice ? (
+                        <span>
+                          {new Intl.NumberFormat("en-NG", {
+                            style: "currency",
+                            currency: "NGN",
+                          }).format(group.monthlyPrice)}{" "}
+                          (monthly)
+                        </span>
+                      ) : (
+                        <span>Free / Monthly</span>
+                      )}
+                      /
+                      {group?.yearlyPrice ? (
+                        <>
+                          {" "}
+                          <span>
+                            {new Intl.NumberFormat("en-NG", {
+                              style: "currency",
+                              currency: "NGN",
+                            }).format(group.yearlyPrice)}{" "}
+                            (yearly)
+                          </span>
+                        </>
+                      ) : null}
+                    </>
+                  ) : (
+                    <span>{group?.paymentType || "Free"}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -80,16 +118,61 @@ export default function GroupList({ onSelectGroup, data }) {
                 {group?.status || "active"}
               </Badge>
               <CopyInviteLink groupId={group._id} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(group._id);
-                }}
-              >
-                <Trash className="w-4 h-4" />
-              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // handleEditGroup(group._id)
+                    }}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Group
+                  </DropdownMenuItem>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onSelect={(e) => {
+                          // Prevent the dropdown from closing
+                          e.preventDefault();
+                        }}
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Set Payment Settings
+                      </DropdownMenuItem>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px] p-0">
+                      <CreateGroupFormv0
+                        Groups={{ groups: [group] }}
+                        user={user}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-destructive hover:text-white hover:bg-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(group._id);
+                    }}
+                  >
+                    <Trash className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </CardContent>
         </Card>

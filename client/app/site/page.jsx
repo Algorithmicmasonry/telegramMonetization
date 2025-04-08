@@ -145,11 +145,11 @@ const SitePage = () => {
     <div>
       <HeroSection />
       <HeroImage />
-      <Modal
+      {/* <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
-      />
+      /> */}
       <Perks />
       <Steps />
       <UseCases />

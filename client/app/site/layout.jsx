@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { UserProvider } from "@/providers/UserProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { Poppins } from "next/font/google";
+import { usePathname } from "next/navigation";
 
 
 const poppins = Poppins({
@@ -14,6 +15,7 @@ const poppins = Poppins({
 });
 
 const SiteLayout = ({ children }) => {
+  const path = usePathname();
   return (
     <ThemesProvider
       attribute="class"
@@ -24,7 +26,7 @@ const SiteLayout = ({ children }) => {
       <AuthProvider>
         <UserProvider>
           <div className={`${poppins.className} `}>
-            <Navbar />
+            { path.startsWith("/site/invite/") || path.startsWith("/site/confirm/") ? "" : <Navbar />}
             {children}
           </div>
         </UserProvider>

@@ -25,11 +25,45 @@ import { toast } from "@/hooks/use-toast";
 
 // This is a simplified list of country codes. You may want to expand this.
 const countryCodes = [
-  { code: "+1", country: "US" },
-  { code: "+44", country: "UK" },
-  { code: "+91", country: "IN" },
   { code: "+234", country: "Nigeria" },
-  // Add more country codes as needed
+  { code: "+1", country: "United States" },
+  { code: "+44", country: "United Kingdom" },
+  { code: "+91", country: "India" },
+  { code: "+81", country: "Japan" },
+  { code: "+49", country: "Germany" },
+  { code: "+33", country: "France" },
+  { code: "+39", country: "Italy" },
+  { code: "+61", country: "Australia" },
+  { code: "+55", country: "Brazil" },
+  { code: "+7", country: "Russia" },
+  { code: "+27", country: "South Africa" },
+  { code: "+82", country: "South Korea" },
+  { code: "+86", country: "China" },
+  { code: "+964", country: "Iraq" },
+  { code: "+971", country: "United Arab Emirates" },
+  { code: "+20", country: "Egypt" },
+  { code: "+966", country: "Saudi Arabia" },
+  { code: "+34", country: "Spain" },
+  { code: "+46", country: "Sweden" },
+
+  { code: "+31", country: "Netherlands" },
+  { code: "+63", country: "Philippines" },
+  { code: "+62", country: "Indonesia" },
+  { code: "+65", country: "Singapore" },
+  { code: "+92", country: "Pakistan" },
+  { code: "+93", country: "Afghanistan" },
+
+  { code: "+90", country: "Turkey" },
+  { code: "+94", country: "Sri Lanka" },
+  { code: "+351", country: "Portugal" },
+  { code: "+976", country: "Mongolia" },
+  { code: "+977", country: "Nepal" },
+  { code: "+358", country: "Finland" },
+  { code: "+48", country: "Poland" },
+  { code: "+380", country: "Ukraine" },
+  { code: "+41", country: "Switzerland" },
+  { code: "+43", country: "Austria" },
+  { code: "+84", country: "Vietnam" },
 ];
 
 export default function PaymentForm({ groupId, groupName, userId }) {
@@ -59,16 +93,15 @@ export default function PaymentForm({ groupId, groupName, userId }) {
       // ]);
 
       const response = await createMember(data, groupId, userId);
+     
 
-      const memberId = response.newMember._id;
+      const memberId = response._id;
       const urlResponse = await generatePaymentLink(groupId, memberId);
 
       console.log(
         "this is the response from the create member function: ",
         response
       );
-
-      
 
       console.log(
         "this is the url response from the generate payment link function: ",

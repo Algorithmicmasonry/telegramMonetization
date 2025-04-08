@@ -20,14 +20,11 @@ import InviteLinkGenerator from "./InviteLinkGenerator";
 import PaymentLinkInput from "../../launchpad/_components/PaymentLinkInput";
 import CreateGroupForm from "./CreateGroupForm";
 import { getMyUser } from "@/actions/queries";
+import AddBotToGroup from "../../_components/AddBotToGroup";
 
 export default function GroupsPage({ uid, groups, user }) {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  console.log("This is the user passed to the group page: ", user);
-
-
-
 
   return (
     <div className="container mx-auto py-10 w-full">
@@ -37,7 +34,10 @@ export default function GroupsPage({ uid, groups, user }) {
             <TabsTrigger value="groups">Groups</TabsTrigger>
             <TabsTrigger value="settings">Group Settings</TabsTrigger>
           </TabsList>
-          <CreateGroupForm Groups={groups} user={user} />
+          <div className="flex items-center gap-4 justify-between">
+            <AddBotToGroup />
+            <CreateGroupForm Groups={groups} user={user} />
+          </div>
         </div>
         <div>
           <TabsContent value="groups" className="mt-0">
@@ -54,7 +54,7 @@ export default function GroupsPage({ uid, groups, user }) {
                   <Input placeholder="Search groups..." className="flex-1" />
                 </div>
                 <ScrollArea className="h-[600px]">
-                  <GroupList onSelectGroup={setSelectedGroup} data={groups} />
+                  <GroupList onSelectGroup={setSelectedGroup} data={groups}  user={user}/>
                 </ScrollArea>
               </CardContent>
             </Card>

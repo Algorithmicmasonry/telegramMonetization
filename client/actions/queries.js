@@ -241,7 +241,7 @@ export const createMember = async (data, groupId, userId) => {
 
     if (!response.ok) {
       const errorDetails = await response.json();
-      console.error(`Error setting group settings: ${errorDetails.message}`);
+      console.error(`Error creating member: ${errorDetails.message}, ${errorDetails}`);
       // You can throw the error message from the backend to be handled by the catch block
       throw new Error(errorDetails.message || "Failed to set group settings.");
     }

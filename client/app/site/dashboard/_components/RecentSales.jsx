@@ -30,7 +30,7 @@ const RecentSales = ({ limit,salesData }) => {
   //     amount: 30000,
   //   },
   // ];
-  console.log("This is the recent sales data", salesData);
+
   if (salesData.length === 0)
     return (
       <div className="flex flex-col items-center justify-center py-4 text-muted-foreground space-y-4s">

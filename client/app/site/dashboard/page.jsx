@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import CreateGroupButton from "@/components/CreateGroupButton";
 import CreateGroupForm from "./groups/_components/CreateGroupForm";
+import AddBotToGroup from "./_components/AddBotToGroup";
 
 const page = async () => {
   const { getUser } = getKindeServerSession();
@@ -24,7 +25,7 @@ const page = async () => {
   const uid = userFromKinde?.id;
 
   const response = await createUser(userFromKinde);
-  console.log(response);
+ 
   const userGroups = await getUserGroups(uid);
 
   const user = response || {};
@@ -38,15 +39,11 @@ const page = async () => {
   // Total Revenue
   const totalRevenue = revenue.totalEarned || 0;
 
-
   // Total Subscriptions
   const totalSubscriptions = members.length;
 
-
   // Active Now (Currently Paying Members)
   const activeNow = members.filter((member) => member.isPaid).length;
-
-
 
   // Monthly Earnings and Member Count
   const currentYear = new Date().getFullYear();
@@ -90,7 +87,10 @@ const page = async () => {
     <main className="relative h-full">
       <div className="flex items-center justify-between ">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <CreateGroupForm Groups={userGroups} user={user} />
+        <div className="flex items-center justify-between gap-4">
+          <AddBotToGroup />
+          <CreateGroupForm Groups={userGroups} user={user} />
+        </div>
       </div>
       <Separator className="my-6" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

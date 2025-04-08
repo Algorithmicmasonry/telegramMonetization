@@ -8,7 +8,7 @@ const page = async () => {
   const user = await getUser();
   const uid = user?.id;
   const groupList = await getUserGroups(uid);
-  console.log("These are the users groups: ", groupList);
+  
   const userDB = await getMyUser(uid);
   return (
     <>
