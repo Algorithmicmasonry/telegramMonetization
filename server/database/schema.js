@@ -47,26 +47,42 @@ const User = mongoose.model("User", userSchema);
 // Member Schema
 const memberSchema = new Schema(
   {
-    firstName: { type: String, required: true }, // Member's first name
-    lastName: { type: String, required: true }, // Member's last name
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
     countryCode: { type: String, required: true },
-    phoneNumber: { type: String, required: true }, // Member's phone number (optional)
-    email: { type: String, required: true }, // Member's email (optional)
-    telegramId: { type: String,}, // Member's unique Telegram ID
-    subscriptionStatus: {
-      type: String,
-      enum: ["active", "inactive", "expired"],
-      default: "inactive",
-    }, // Current status of the subscription
-    group: { type: Schema.Types.ObjectId, ref: "Group" }, // Reference to the group the member belongs to
+    phoneNumber: { type: String, required: true },
+    email: { type: String, required: true },
+
+    telegramId: { type: String }, // will be updated after bot verifies them
+    accessToken: { type: String, unique: true }, // their unique ID to access bot
+
+    group: { type: Schema.Types.ObjectId, ref: "Group" },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    joinedDate: { type: Date, default: Date.now }, // When the member joined the group
-    subscriptionStart: { type: Date }, // Start date of their subscription
-    subscriptionExpiry: { type: Date }, // Expiry date of the subscription
-    paid: { type: Boolean, default: false }, // Has the member paid?
+
+    subscription: {
+      status: {
+        type: String,
+        enum: ["active", "inactive", "expired"],
+        default: "inactive",
+      },
+      plan: { type: String }, // optional: Monthly, 3-Months, 6-Months etc
+      startDate: { type: Date },
+      expiryDate: { type: Date },
+    },
+
+    payment: {
+      status: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
+      reference: { type: String }, // paystack/monnify/flutterwave ref
+      method: { type: String }, // optional: card, transfer etc
+      amount: { type: Number }, // optional
+      datePaid: { type: Date }, // optional
+    },
+
+    joinedDate: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
+
 
 const Member = mongoose.model("Member", memberSchema);
 

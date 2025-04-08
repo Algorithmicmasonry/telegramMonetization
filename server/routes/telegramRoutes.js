@@ -22,13 +22,13 @@ const websiteUrl = process.env.WEBSITE_URL;
 
 bot.start(async (ctx) => {
   const message = ctx.message.text;
-  const match = message.split("");
-  const token = match[1];
-  console.log("This is the token sent along with the start command: ", token);
+  const token = ctx.payload;
+  
   const telegramId = ctx.from?.id;
   const telegramUsername = ctx.from?.first_name;
 
   try {
+    { token && ctx.reply(`This is the payload sent to the telgram bot ${token}`)}
     // Check if the user is already connected in the database
     const user = await User.findOne({ telegramId: telegramId });
 
@@ -119,21 +119,16 @@ bot.action("manage_groups", (ctx) => {
 bot.action("generate_link", (ctx) => {});
 
 bot.on("new_chat_members", async (ctx) => {
-  console.log("This is the data when a new user joins the group:", ctx);
   const adminId = ctx.from.id;
-  const number = await ctx.telegram.getChatMembersCount(ctx.chat.id); // Get the number of people in the group
-  console.log("These are the number of people in the group: ", number);
+  const number = await ctx.telegram.getChatMembersCount(ctx.chat.id); 
+
   const groupId = ctx.chat?.id; // ID of the group
   const groupName = ctx.chat?.title; // Name of the group
   const userId = ctx.from?.id;
-  const newMember = ctx.message.new_chat_member; // New member object
+  const newMembers = ctx.message.new_chat_members; // New members object
+ 
 
-  console.log(
-    "this is the group data i am looking for: ",
-    ctx?.message.new_chat_members,
-    ctx?.message.new_chat_member,
-    ctx.message.new_chat_participant
-  );
+
   const groupDescription = ctx.chat?.description || ""; // Description of the group
 
   if (!groupId || !userId || !groupName) {
@@ -176,10 +171,17 @@ bot.on("new_chat_members", async (ctx) => {
 
         await ctx.telegram.sendMessage(
           adminId,
-          `Group Shepherd has been added to the group: ${groupName}🎉. If you want to set the amount of money you want to be paid for access to your group click the button below to access our webiste: ${websiteUrl}`
+          `Group Shepherd has been added to the group: ${groupName}🎉. If you want to set the amount of money you want to be paid for access to your group click the button below to access our website: ${websiteUrl}`
         );
 
-        paidMemberCheck(ctx, memberId, groupId, adminId);
+        // Iterate through new members and check if the bot is one of them
+        newMembers.forEach((member) => {
+          // Pass the correct memberId to the function
+          if (member.id !== ctx.botInfo.id) {
+            // Call the payment check function for real users
+            paidMemberCheck(ctx, member.id, groupId, adminId);
+          }
+        });
       } else {
         console.log("Group already exists in the database.");
       }
@@ -330,9 +332,9 @@ router.post("/api/telegram/set-rules", async (request, response) => {
       return response.status(404).json({ message: "Group not found" });
     }
 
-    if (group.paymentType) {
+    if (group.paymentType && !isPaidGroup) {
       return response.status(400).json({
-        message: "Group already has a payment type set.",
+        message: "You cannot switch a paid group to a free group.",
       });
     }
 
@@ -422,7 +424,7 @@ router.post("/api/telegram/set-rules", async (request, response) => {
     }
 
     // Generate Telegram invite link using Telegraf
-    const inviteLink = await generateTelegramInviteLink(group.telegramGroupId); // Assuming you have a function to do this
+    const inviteLink = await generateTelegramInviteLink(group?.groupId); // Assuming you have a function to do this
 
     // Message to send to the user
     const message =
@@ -430,14 +432,14 @@ router.post("/api/telegram/set-rules", async (request, response) => {
       `${group.groupName} new payment rules are as follows:\n` +
       `💸The payment type is ${group.paymentType}\n` +
       `💱The currency is ${group.currency}\n` +
-      `💰The one-time price is ${group.currency}${group.oneTimePrice}\n` +
+      `${pricingType === "one-time" && oneTimePrice ? `The one-time price is ${group.oneTimePrice}` : ""}\n` +
       `💵📅The monthly price is ${group.currency}${group.monthlyPrice}\n` +
       `💎The yearly price is${group.currency} ${group.yearlyPrice}\n\n` +
       `This is your group payment link: ${paymentLink}\n\n` +
-      `Join the group using this invite link: ${inviteLink}`;
+      `Send this link to members who want to join your community using this invite link: ${paymentLink}`;
 
     await sendBotMessage(user?.telegramId, message);
-    console.log("bot has sent message");
+    
 
     return response
       .status(200)
